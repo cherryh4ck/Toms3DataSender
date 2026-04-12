@@ -37,12 +37,14 @@ class Toms3DataSender : JavaPlugin() {
                 world_size TEXT NOT NULL, 
                 uptime VARCHAR(60) NOT NULL, 
                 tps DECIMAL(10, 2) NOT NULL, 
-                mspt DECIMAL(10, 2) NOT NULL
+                mspt DECIMAL(10, 2) NOT NULL,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
             
             CREATE TABLE IF NOT EXISTS ConnectedPlayers(
                 name VARCHAR(100) NOT NULL UNIQUE PRIMARY KEY,
-                uuid CHAR(36) NULL
+                uuid CHAR(36) NULL,
+                ping INT NOT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             
             CREATE TABLE IF NOT EXISTS PlayerData(
@@ -50,7 +52,8 @@ class Toms3DataSender : JavaPlugin() {
                 name VARCHAR(100) NOT NULL,
                 playtime BIGINT NOT NULL DEFAULT 0,
                 kills BIGINT NOT NULL DEFAULT 0,
-                deaths BIGINT NOT NULL DEFAULT 0
+                deaths BIGINT NOT NULL DEFAULT 0,
+                joindate BIGINT NOT NULL DEFAULT 0
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         """.trimIndent()
 
@@ -95,7 +98,7 @@ class Toms3DataSender : JavaPlugin() {
         """.trimIndent()
 
         val addConnectedPlayer = """
-            INSERT INTO ConnectedPlayers(name) VALUES (?)
+            INSERT INTO ConnectedPlayers(name, ping) VALUES (?, ?)
         """.trimIndent()
 
         try {
@@ -117,6 +120,7 @@ class Toms3DataSender : JavaPlugin() {
                 for (player in onlinePlayers){
                     conn.prepareStatement(addConnectedPlayer).use { ps ->
                         ps.setString(1, player.name)
+                        ps.setInt(2, player.ping)
                         ps.executeUpdate()
                     }
                 }
@@ -128,14 +132,15 @@ class Toms3DataSender : JavaPlugin() {
 
     fun updatePlayerData(){
         val sql = """
-            INSERT INTO playerdata(uuid, name, playtime, kills, deaths)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO playerdata(uuid, name, playtime, kills, deaths, joindate)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 uuid = VALUES(uuid),
                 name = VALUES(name),
                 playtime = VALUES(playtime),
                 kills = VALUES(kills),
-                deaths = VALUES(deaths)
+                deaths = VALUES(deaths),
+                joindate = VALUES(joindate)
         """.trimIndent()
 
         DatabaseManager.connection.use { conn ->
@@ -146,6 +151,7 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setInt(3, player.getStatistic(Statistic.PLAY_ONE_MINUTE))
                     ps.setInt(4, player.getStatistic(Statistic.PLAYER_KILLS))
                     ps.setInt(5, player.getStatistic(Statistic.DEATHS))
+                    ps.setLong(6, player.firstPlayed)
                     ps.executeUpdate()
                 }
             }
