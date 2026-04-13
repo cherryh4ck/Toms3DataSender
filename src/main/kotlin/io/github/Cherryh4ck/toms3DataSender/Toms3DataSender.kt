@@ -25,7 +25,6 @@ class Toms3DataSender : JavaPlugin() {
         server.scheduler.runTaskTimerAsynchronously(this, Runnable {
             updateServerData()
             updatePlayerData()
-            logger.info("Data sent.")
         }, 20L, 600L)
     }
 
@@ -83,7 +82,7 @@ class Toms3DataSender : JavaPlugin() {
         val uptime = "${days}d ${hours}h ${minutes}m ${seconds}s"
 
         val sql = """
-            INSERT INTO serverdata (id, unique_joins, world_size, uptime, tps, mspt) 
+            INSERT INTO ServerData (id, unique_joins, world_size, uptime, tps, mspt) 
             VALUES (?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE 
                 unique_joins = VALUES(unique_joins), 
@@ -94,7 +93,7 @@ class Toms3DataSender : JavaPlugin() {
         """.trimIndent()
 
         val removeConnectedPlayers = """
-            DELETE FROM connectedplayers;
+            DELETE FROM ConnectedPlayers;
         """.trimIndent()
 
         val addConnectedPlayer = """
@@ -132,7 +131,7 @@ class Toms3DataSender : JavaPlugin() {
 
     fun updatePlayerData(){
         val sql = """
-            INSERT INTO playerdata(uuid, name, playtime, kills, deaths, joindate)
+            INSERT INTO PlayerData(uuid, name, playtime, kills, deaths, joindate)
             VALUES (?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 uuid = VALUES(uuid),

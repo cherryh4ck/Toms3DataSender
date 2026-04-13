@@ -14,18 +14,24 @@ object DatabaseManager {
         val user = plugin.user
         val pass = plugin.password
         val config = HikariConfig().apply {
-            jdbcUrl = "jdbc:mysql://$host:$port/$db?allowMultiQueries=true"
+            jdbcUrl = "jdbc:mysql://$host:$port/$db?allowMultiQueries=true&autoReconnect=true"
             username = user
             password = pass
 
             addDataSourceProperty("cachePrepStmts", "true")
             addDataSourceProperty("prepStmtCacheSize", "250")
             addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
+            addDataSourceProperty("useServerPrepStmts", "true")
 
-            maximumPoolSize = 10
-            connectionTimeout = 10000
-            idleTimeout = 600000
-            maxLifetime = 1800000
+            maximumPoolSize = 2
+            minimumIdle = 1
+
+            connectionTestQuery = "SELECT 1"
+
+            connectionTimeout = 3000
+            idleTimeout = 30000
+            maxLifetime = 60000
+            keepaliveTime = 20000
         }
 
         dataSource = HikariDataSource(config)
