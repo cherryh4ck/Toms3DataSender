@@ -37,6 +37,7 @@ class Toms3DataSender : JavaPlugin() {
                 uptime VARCHAR(60) NOT NULL, 
                 tps DECIMAL(10, 2) NOT NULL, 
                 mspt DECIMAL(10, 2) NOT NULL,
+                peak_player_count INT NOT NULL,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
             
@@ -78,18 +79,20 @@ class Toms3DataSender : JavaPlugin() {
         val worldSize = PlaceholderAPI.setPlaceholders(null, "%worldstats_size%")
 
         val onlinePlayers = Bukkit.getOnlinePlayers()
+        val playerCount = Bukkit.getOnlinePlayers().size
 
         val uptime = "${days}d ${hours}h ${minutes}m ${seconds}s"
 
         val sql = """
-            INSERT INTO ServerData (id, unique_joins, world_size, uptime, tps, mspt) 
+            INSERT INTO ServerData (id, unique_joins, world_size, uptime, tps, mspt, peak_player_count) 
             VALUES (?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE 
                 unique_joins = VALUES(unique_joins), 
                 world_size = VALUES(world_size),
                 uptime = VALUES(uptime),
                 tps = VALUES(tps),
-                mspt = VALUES(mspt);
+                mspt = VALUES(mspt),
+                peak_player_count = GREATEST(peak_player_count, VALUES(peak_player_count));
         """.trimIndent()
 
         val removeConnectedPlayers = """
@@ -109,6 +112,7 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setString(4, uptime)
                     ps.setDouble(5, tps)
                     ps.setDouble(6, mspt)
+                    ps.setInt(7, playerCount)
                     ps.executeUpdate()
                 }
 
