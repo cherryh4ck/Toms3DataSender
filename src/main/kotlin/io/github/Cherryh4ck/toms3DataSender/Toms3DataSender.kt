@@ -4,7 +4,7 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
-import me.clip.placeholderapi.PlaceholderAPI;
+import me.clip.placeholderapi.PlaceholderAPI
 import org.bukkit.Statistic
 import kotlin.use
 
@@ -17,9 +17,12 @@ class Toms3DataSender : JavaPlugin() {
 
     override fun onEnable() {
         saveDefaultConfig()
+        server.pluginManager.registerEvents(ChatListener(this), this)
         logger.info("Toms3DataSender enabled.")
+        logger.info("Hooked into chat successfully.")
 
         DatabaseManager.connect(this)
+        logger.info("Checking tables...")
         createTables()
 
         server.scheduler.runTaskTimerAsynchronously(this, Runnable {
@@ -55,11 +58,35 @@ class Toms3DataSender : JavaPlugin() {
                 deaths BIGINT NOT NULL DEFAULT 0,
                 joindate BIGINT NOT NULL DEFAULT 0
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            
+            CREATE TABLE IF NOT EXISTS ChatData(
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                author VARCHAR(100) NOT NULL,
+                message TEXT NOT NULL,
+                event_type ENUM('CHAT', 'CHAT_GREENTEXT', 'CHAT_REDTEXT', 'EVENT'),
+                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        """.trimIndent()
+
+        val triggerSql = """
+            CREATE TRIGGER IF NOT EXISTS limitChat
+            AFTER INSERT ON ChatData
+            FOR EACH ROW
+            BEGIN
+                IF (SELECT COUNT(*) FROM ChatData) > 150 THEN
+                    DELETE FROM ChatData 
+                    WHERE id = (SELECT MIN(id) FROM ChatData);
+                END IF;
+            END;
         """.trimIndent()
 
         DatabaseManager.connection.use { conn ->
             conn.createStatement().use { stmt ->
                 stmt.execute(sql)
+                logger.info("Executed server & player data table creation.")
+
+                stmt.execute(triggerSql)
+                logger.info("Executed trigger creation.")
             }
         }
     }
@@ -85,7 +112,7 @@ class Toms3DataSender : JavaPlugin() {
 
         val sql = """
             INSERT INTO ServerData (id, unique_joins, world_size, uptime, tps, mspt, peak_player_count) 
-            VALUES (?, ?, ?, ?, ?, ?) 
+            VALUES (?, ?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE 
                 unique_joins = VALUES(unique_joins), 
                 world_size = VALUES(world_size),
@@ -157,6 +184,22 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setLong(6, player.firstPlayed)
                     ps.executeUpdate()
                 }
+            }
+        }
+    }
+
+    fun insertChatData(name: String, message: String, type: String){
+        val sql = """
+            INSERT INTO ChatData(author, message, event_type) 
+            VALUES (?, ?, ?)
+        """.trimIndent()
+
+        DatabaseManager.connection.use { conn ->
+            conn.prepareStatement(sql).use { ps ->
+                ps.setString(1, name)
+                ps.setString(2, message)
+                ps.setString(3, type)
+                ps.executeUpdate()
             }
         }
     }
