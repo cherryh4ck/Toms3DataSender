@@ -16,13 +16,13 @@ class ChatListener(private val plugin: Toms3DataSender) : Listener {
         val messageText = PlainTextComponentSerializer.plainText().serialize(messageComponent)
 
         if (messageText.startsWith(">")){
-            plugin.insertChatData(playerName, messageText, "CHAT_GREENTEXT");
+            plugin.insertChatData(playerName, messageText, "CHAT_GREENTEXT")
         }
         else if (messageText.startsWith("!")){
-            plugin.insertChatData(playerName, messageText, "CHAT_REDTEXT");
+            plugin.insertChatData(playerName, messageText, "CHAT_REDTEXT")
         }
         else{
-            plugin.insertChatData(playerName, messageText, "CHAT");
+            plugin.insertChatData(playerName, messageText, "CHAT")
         }
     }
 
@@ -31,7 +31,7 @@ class ChatListener(private val plugin: Toms3DataSender) : Listener {
         val playerName = event.player.name
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            plugin.insertChatData(playerName, "has joined the server.", "EVENT");
+            plugin.insertChatData(playerName, "has joined the server.", "EVENT")
         })
     }
 
@@ -40,7 +40,7 @@ class ChatListener(private val plugin: Toms3DataSender) : Listener {
         val playerName = event.player.name
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            plugin.insertChatData(playerName, "has left the server.", "EVENT");
+            plugin.insertChatData(playerName, "has left the server.", "EVENT")
         })
     }
 }
