@@ -15,6 +15,8 @@ class Toms3DataSender : JavaPlugin() {
     val user = config.getString("user")
     val password = config.getString("password")
 
+    val forceUpdate = config.getBoolean("force-update")
+
     override fun onEnable() {
         saveDefaultConfig()
         server.pluginManager.registerEvents(ChatListener(this), this)
@@ -22,6 +24,13 @@ class Toms3DataSender : JavaPlugin() {
         logger.info("Hooked into chat successfully.")
 
         DatabaseManager.connect(this)
+
+        if (forceUpdate){
+            forceUpdate()
+            logger.info("Force update successfully.")
+            logger.info("Please disable it.")
+        }
+
         logger.info("Checking tables...")
         createTables()
 
@@ -87,6 +96,18 @@ class Toms3DataSender : JavaPlugin() {
 
                 stmt.execute(triggerSql)
                 logger.info("Executed trigger creation.")
+            }
+        }
+    }
+
+    fun forceUpdate(){
+        val sql = """
+            DELETE FROM ServerData;
+        """.trimIndent()
+
+        DatabaseManager.connection.use { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.execute(sql)
             }
         }
     }

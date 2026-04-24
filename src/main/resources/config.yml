@@ -4,3 +4,6 @@ port: 3306
 db: toms3
 user: root
 password:
+
+# Force update
+force-update: false
