@@ -77,25 +77,10 @@ class Toms3DataSender : JavaPlugin() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         """.trimIndent()
 
-        val triggerSql = """
-            CREATE TRIGGER IF NOT EXISTS limitChat
-            AFTER INSERT ON ChatData
-            FOR EACH ROW
-            BEGIN
-                IF (SELECT COUNT(*) FROM ChatData) > 150 THEN
-                    DELETE FROM ChatData 
-                    WHERE id = (SELECT MIN(id) FROM ChatData);
-                END IF;
-            END;
-        """.trimIndent()
-
         DatabaseManager.connection.use { conn ->
             conn.createStatement().use { stmt ->
                 stmt.execute(sql)
                 logger.info("Executed server & player data table creation.")
-
-                stmt.execute(triggerSql)
-                logger.info("Executed trigger creation.")
             }
         }
     }
@@ -209,19 +194,31 @@ class Toms3DataSender : JavaPlugin() {
         }
     }
 
-    fun insertChatData(name: String, message: String, type: String){
-        val sql = """
-            INSERT INTO ChatData(author, message, event_type) 
-            VALUES (?, ?, ?)
+    fun insertChatData(name: String, message: String, type: String) {
+        val sqlInsert = "INSERT INTO ChatData(author, message, event_type) VALUES (?, ?, ?)"
+        val sqlLimit = """
+        DELETE FROM ChatData 
+        WHERE id NOT IN (
+            SELECT id FROM (
+                SELECT id FROM ChatData ORDER BY date DESC LIMIT 150
+            ) as temp
+        )
         """.trimIndent()
 
-        DatabaseManager.connection.use { conn ->
-            conn.prepareStatement(sql).use { ps ->
-                ps.setString(1, name)
-                ps.setString(2, message)
-                ps.setString(3, type)
-                ps.executeUpdate()
+        try {
+            DatabaseManager.connection.use { conn ->
+                conn.prepareStatement(sqlInsert).use { ps ->
+                    ps.setString(1, name)
+                    ps.setString(2, message)
+                    ps.setString(3, type)
+                    ps.executeUpdate()
+                }
+                conn.createStatement().use { stmt ->
+                    stmt.execute(sqlLimit)
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
