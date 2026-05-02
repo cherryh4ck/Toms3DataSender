@@ -31,7 +31,12 @@ class ChatListener(private val plugin: Toms3DataSender) : Listener {
         val playerName = event.player.name
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            plugin.insertChatData(playerName, "has joined the server.", "EVENT")
+            if (event.player.hasPlayedBefore()){
+                plugin.insertChatData(playerName, "has joined the server.", "EVENT")
+            }
+            else {
+                plugin.insertChatData(playerName, "has joined the server for the first time.", "EVENT")
+            }
         })
     }
 
