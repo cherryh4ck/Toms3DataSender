@@ -17,6 +17,8 @@ class Toms3DataSender : JavaPlugin() {
 
     val forceUpdate = config.getBoolean("force-update")
 
+    var currentPlayerPeak = 0
+
     override fun onEnable() {
         saveDefaultConfig()
         server.pluginManager.registerEvents(ChatListener(this), this)
@@ -24,6 +26,11 @@ class Toms3DataSender : JavaPlugin() {
         logger.info("Hooked into chat successfully.")
 
         DatabaseManager.connect(this)
+
+        logger.info("Connected successfully.")
+        logger.info("Loading last player peak value...")
+
+        currentPlayerPeak = getPlayerPeak()
 
         if (forceUpdate){
             forceUpdate()
@@ -38,6 +45,19 @@ class Toms3DataSender : JavaPlugin() {
             updateServerData()
             updatePlayerData()
         }, 20L, 600L)
+    }
+
+    fun getPlayerPeak() : Int {
+        val sql = "SELECT peak_player_count FROM ServerData WHERE id = 1"
+
+        DatabaseManager.connection.use { conn ->
+            conn.prepareStatement(sql).use { ps ->
+                val rs = ps.executeQuery()
+                if (rs.next()) {
+                    return rs.getInt("peak_player_count")
+                }
+            }
+        }
     }
 
     fun createTables(){
@@ -65,7 +85,8 @@ class Toms3DataSender : JavaPlugin() {
                 playtime BIGINT NOT NULL DEFAULT 0,
                 kills BIGINT NOT NULL DEFAULT 0,
                 deaths BIGINT NOT NULL DEFAULT 0,
-                joindate BIGINT NOT NULL DEFAULT 0
+                joindate BIGINT NOT NULL DEFAULT 0,
+                is_donor TINYINT(1) NOT NULL DEFAULT 0
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             
             CREATE TABLE IF NOT EXISTS ChatData(
@@ -168,15 +189,16 @@ class Toms3DataSender : JavaPlugin() {
 
     fun updatePlayerData(){
         val sql = """
-            INSERT INTO PlayerData(uuid, name, playtime, kills, deaths, joindate)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO PlayerData(uuid, name, playtime, kills, deaths, joindate, is_donor)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 uuid = VALUES(uuid),
                 name = VALUES(name),
                 playtime = VALUES(playtime),
                 kills = VALUES(kills),
                 deaths = VALUES(deaths),
-                joindate = VALUES(joindate)
+                joindate = VALUES(joindate),
+                is_donor = VALUES(is_donor)
         """.trimIndent()
 
         DatabaseManager.connection.use { conn ->
@@ -188,6 +210,7 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setInt(4, player.getStatistic(Statistic.PLAYER_KILLS))
                     ps.setInt(5, player.getStatistic(Statistic.DEATHS))
                     ps.setLong(6, player.firstPlayed)
+                    ps.setBoolean(7, player.hasPermission("tmdonors.donors"))
                     ps.executeUpdate()
                 }
             }
