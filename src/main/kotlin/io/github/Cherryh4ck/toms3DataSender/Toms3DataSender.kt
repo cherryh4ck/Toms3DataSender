@@ -17,20 +17,19 @@ class Toms3DataSender : JavaPlugin() {
 
     val forceUpdate = config.getBoolean("force-update")
 
-    var currentPlayerPeak = 0
+    val currentPlayerPeak = java.util.concurrent.atomic.AtomicInteger(0)
 
     override fun onEnable() {
         saveDefaultConfig()
         server.pluginManager.registerEvents(ChatListener(this), this)
+        server.pluginManager.registerEvents(ConnectionListener(this), this)
         logger.info("Toms3DataSender enabled.")
         logger.info("Hooked into chat successfully.")
+        logger.info("Hooked into connections successfully.")
 
         DatabaseManager.connect(this)
 
         logger.info("Connected successfully.")
-        logger.info("Loading last player peak value...")
-
-        currentPlayerPeak = getPlayerPeak()
 
         if (forceUpdate){
             forceUpdate()
@@ -40,6 +39,10 @@ class Toms3DataSender : JavaPlugin() {
 
         logger.info("Checking tables...")
         createTables()
+
+        logger.info("Loading last player peak value...")
+        currentPlayerPeak.set(getPlayerPeak())
+        logger.info("Last player peak value: $currentPlayerPeak")
 
         server.scheduler.runTaskTimerAsynchronously(this, Runnable {
             updateServerData()
@@ -168,7 +171,7 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setString(4, uptime)
                     ps.setDouble(5, tps)
                     ps.setDouble(6, mspt)
-                    ps.setInt(7, playerCount)
+                    ps.setInt(7, currentPlayerPeak.get())
                     ps.executeUpdate()
                 }
 
