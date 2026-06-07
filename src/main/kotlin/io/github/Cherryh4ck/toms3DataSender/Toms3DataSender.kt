@@ -58,6 +58,8 @@ class Toms3DataSender : JavaPlugin() {
                 }
             }
         }
+
+        return 0
     }
 
     fun createTables(){
