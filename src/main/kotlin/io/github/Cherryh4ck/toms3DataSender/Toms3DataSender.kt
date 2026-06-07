@@ -208,6 +208,7 @@ class Toms3DataSender : JavaPlugin() {
 
         DatabaseManager.connection.use { conn ->
             for (player in Bukkit.getOnlinePlayers()) {
+                val isDonor = player.hasPermission("tmdonors.donors") && !player.isOp
                 conn.prepareStatement(sql).use { ps ->
                     ps.setString(1, player.uniqueId.toString())
                     ps.setString(2, player.name)
@@ -215,7 +216,7 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setInt(4, player.getStatistic(Statistic.PLAYER_KILLS))
                     ps.setInt(5, player.getStatistic(Statistic.DEATHS))
                     ps.setLong(6, player.firstPlayed)
-                    ps.setBoolean(7, player.hasPermission("tmdonors.donors"))
+                    ps.setBoolean(7, isDonor)
                     ps.executeUpdate()
                 }
             }
