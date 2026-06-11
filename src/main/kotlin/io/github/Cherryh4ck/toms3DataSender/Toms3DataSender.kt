@@ -91,7 +91,9 @@ class Toms3DataSender : JavaPlugin() {
                 kills BIGINT NOT NULL DEFAULT 0,
                 deaths BIGINT NOT NULL DEFAULT 0,
                 joindate BIGINT NOT NULL DEFAULT 0,
-                is_donor TINYINT(1) NOT NULL DEFAULT 0
+                is_donor TINYINT(1) NOT NULL DEFAULT 0,
+                money_donated BIGINT NOT NULL DEFAULT 0,
+                gradient_id INT NOT NULL DEFAULT 1
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             
             CREATE TABLE IF NOT EXISTS ChatData(
