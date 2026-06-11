@@ -1,6 +1,7 @@
 package io.github.Cherryh4ck.toms3DataSender
 
 import io.github.Cherryh4ck.toms3DataSender.Commands.AddQuantity
+import io.github.Cherryh4ck.toms3DataSender.Commands.ChangeGradient
 import io.github.Cherryh4ck.toms3DataSender.Listeners.ChatListener
 import io.github.Cherryh4ck.toms3DataSender.Listeners.ConnectionListener
 import org.bukkit.Bukkit
@@ -12,6 +13,8 @@ import org.bukkit.Statistic
 import kotlin.use
 
 class Toms3DataSender : JavaPlugin() {
+    val prefix = "<gold>[<red><bold>Toms3<gray>Core</gray></bold></red>]"
+
     val host = config.getString("host")
     val port = config.getInt("port")
     val db = config.getString("db")
@@ -27,6 +30,7 @@ class Toms3DataSender : JavaPlugin() {
         server.pluginManager.registerEvents(ChatListener(this), this)
         server.pluginManager.registerEvents(ConnectionListener(this), this)
         getCommand("addquantity")?.setExecutor(AddQuantity(this))
+        getCommand("changegradient")?.setExecutor(ChangeGradient(this))
         logger.info("Toms3DataSender enabled.")
         logger.info("Hooked into chat successfully.")
         logger.info("Hooked into connections successfully.")
@@ -268,6 +272,22 @@ class Toms3DataSender : JavaPlugin() {
             conn.prepareStatement(sql).use { ps ->
                 ps.setInt(1, quantity)
                 ps.setString(2, name)
+                ps.executeUpdate()
+            }
+        }
+    }
+
+    fun updateGradient(uuid: String, gradientId: Int) {
+        val sql = """
+            UPDATE PlayerData
+            SET gradient_id = ?
+            WHERE uuid = ?
+        """.trimIndent()
+
+        DatabaseManager.connection.use { conn ->
+            conn.prepareStatement(sql).use { ps ->
+                ps.setInt(1, gradientId)
+                ps.setString(2, uuid)
                 ps.executeUpdate()
             }
         }

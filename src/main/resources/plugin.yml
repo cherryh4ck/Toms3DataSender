@@ -10,5 +10,9 @@ commands:
     description: Add money!!!!
     usage: /addquantity [name] [value]
     permission: tomsdatasender
+  changegradient:
+    description: Change website gradient.
+    usage: /changegradient [colour]
+    permission: tmdonors.donors
 
 depend: ["PlaceholderAPI"] #
