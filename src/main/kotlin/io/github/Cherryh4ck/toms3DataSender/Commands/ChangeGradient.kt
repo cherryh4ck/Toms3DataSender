@@ -1,14 +1,12 @@
 package io.github.Cherryh4ck.toms3DataSender.Commands
 
 import io.github.Cherryh4ck.toms3DataSender.Toms3DataSender
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes.player
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
-import kotlin.text.startsWith
 
 class ChangeGradient(private val plugin : Toms3DataSender) : TabExecutor {
     val availableGradients = listOf("default", "dark_green", "dark_red", "gold", "dark_gray", "green", "red", "yellow", "dark_blue", "dark_aqua", "dark_purple", "gray", "blue", "aqua", "light_purple", "black")
@@ -36,7 +34,9 @@ class ChangeGradient(private val plugin : Toms3DataSender) : TabExecutor {
         }
 
         val gradientIndex = availableGradients.indexOf(args[0]) + 1
-        plugin.updateGradient(sender.uniqueId.toString(), gradientIndex)
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+            plugin.updateGradient(sender.uniqueId.toString(), gradientIndex)
+        })
         sender.sendMessage(mm.deserialize("${plugin.prefix} Website gradient changed to <b>${args[0]}</b>."))
         return true
     }
