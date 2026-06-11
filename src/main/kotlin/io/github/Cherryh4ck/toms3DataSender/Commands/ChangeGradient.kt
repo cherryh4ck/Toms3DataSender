@@ -42,7 +42,7 @@ class ChangeGradient(private val plugin : Toms3DataSender) : TabExecutor {
     }
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): List<String>? {
-        return if (args.size == 1){
+        return if (args.size == 1 && sender.hasPermission("tmdonors.donors")){
             availableGradients
         }
         else{
