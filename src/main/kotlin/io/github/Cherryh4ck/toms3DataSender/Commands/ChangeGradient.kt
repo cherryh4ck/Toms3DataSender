@@ -7,19 +7,26 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
+import java.util.UUID
 
 class ChangeGradient(private val plugin : Toms3DataSender) : TabExecutor {
     val availableGradients = listOf("default", "dark_green", "dark_red", "gold", "dark_gray", "green", "red", "yellow", "dark_blue", "dark_aqua", "dark_purple", "gray", "blue", "aqua", "light_purple", "black")
     val mm = MiniMessage.miniMessage()
+    val cooldowns: MutableSet<UUID> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
-            sender.sendMessage(mm.deserialize("${plugin.prefix} You can't use this command as console"))
+            sender.sendMessage(mm.deserialize("${plugin.prefix} You can't use this command as console."))
             return true
         }
 
         if (!sender.hasPermission("tmdonors.donors")) {
             sender.sendMessage(mm.deserialize("${plugin.prefix} This command is donor-only."))
+            return true
+        }
+
+        if (cooldowns.contains(sender.uniqueId)) {
+            sender.sendMessage(mm.deserialize("${plugin.prefix} Please wait a few seconds before using this command again."))
             return true
         }
 
@@ -38,6 +45,10 @@ class ChangeGradient(private val plugin : Toms3DataSender) : TabExecutor {
             plugin.updateGradient(sender.uniqueId.toString(), gradientIndex)
         })
         sender.sendMessage(mm.deserialize("${plugin.prefix} Website gradient changed to <b>${args[0]}</b>."))
+        cooldowns.add(sender.uniqueId)
+        Bukkit.getScheduler().runTaskLater(plugin, Runnable {
+            cooldowns.remove(sender.uniqueId)
+        }, 100L)
         return true
     }
 
