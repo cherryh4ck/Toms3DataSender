@@ -1,5 +1,7 @@
 package io.github.Cherryh4ck.toms3DataSender
 
+import io.github.Cherryh4ck.toms3DataSender.Listeners.ChatListener
+import io.github.Cherryh4ck.toms3DataSender.Listeners.ConnectionListener
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.lang.management.ManagementFactory

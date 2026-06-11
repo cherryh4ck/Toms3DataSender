@@ -1,5 +1,6 @@
-package io.github.Cherryh4ck.toms3DataSender
+package io.github.Cherryh4ck.toms3DataSender.Listeners
 
+import io.github.Cherryh4ck.toms3DataSender.Toms3DataSender
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener

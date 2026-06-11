@@ -1,5 +1,6 @@
-package io.github.Cherryh4ck.toms3DataSender
+package io.github.Cherryh4ck.toms3DataSender.Listeners
 
+import io.github.Cherryh4ck.toms3DataSender.Toms3DataSender
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Bukkit
