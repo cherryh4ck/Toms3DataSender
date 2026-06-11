@@ -13,6 +13,5 @@ commands:
   changegradient:
     description: Change website gradient.
     usage: /changegradient [colour]
-    permission: tmdonors.donors
 
 depend: ["PlaceholderAPI"] #
