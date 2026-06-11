@@ -1,5 +1,6 @@
 package io.github.Cherryh4ck.toms3DataSender
 
+import io.github.Cherryh4ck.toms3DataSender.Commands.AddQuantity
 import io.github.Cherryh4ck.toms3DataSender.Listeners.ChatListener
 import io.github.Cherryh4ck.toms3DataSender.Listeners.ConnectionListener
 import org.bukkit.Bukkit
@@ -25,6 +26,7 @@ class Toms3DataSender : JavaPlugin() {
         saveDefaultConfig()
         server.pluginManager.registerEvents(ChatListener(this), this)
         server.pluginManager.registerEvents(ConnectionListener(this), this)
+        getCommand("addquantity")?.setExecutor(AddQuantity(this))
         logger.info("Toms3DataSender enabled.")
         logger.info("Hooked into chat successfully.")
         logger.info("Hooked into connections successfully.")
@@ -252,6 +254,22 @@ class Toms3DataSender : JavaPlugin() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    fun addQuantity(name: String, quantity: Int) {
+        val sql = """
+            UPDATE PlayerData
+            SET money_donated = money_donated + ?
+            WHERE name = ?
+        """.trimIndent()
+
+        DatabaseManager.connection.use { conn ->
+            conn.prepareStatement(sql).use { ps ->
+                ps.setInt(1, quantity)
+                ps.setString(2, name)
+                ps.executeUpdate()
+            }
         }
     }
 

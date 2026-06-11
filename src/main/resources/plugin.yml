@@ -5,4 +5,10 @@ api-version: '1.21'
 authors: [ Cherryh4ck ]
 description: Data sender for toms3.cc website
 
+commands:
+  addquantity:
+    description: Add money!!!!
+    usage: /addquantity [name] [value]
+    permission: tomsdatasender
+
 depend: ["PlaceholderAPI"] #
