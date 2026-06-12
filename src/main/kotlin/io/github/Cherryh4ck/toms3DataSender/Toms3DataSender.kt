@@ -101,7 +101,7 @@ class Toms3DataSender : JavaPlugin() {
                 deaths BIGINT NOT NULL DEFAULT 0,
                 joindate BIGINT NOT NULL DEFAULT 0,
                 is_donor TINYINT(1) NOT NULL DEFAULT 0,
-                money_donated BIGINT NOT NULL DEFAULT 0,
+                money_donated DECIMAL(10,2) NOT NULL DEFAULT 0.00,
                 gradient_id INT NOT NULL DEFAULT 1
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             
