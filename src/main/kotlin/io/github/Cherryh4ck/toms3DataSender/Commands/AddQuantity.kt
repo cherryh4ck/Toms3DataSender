@@ -16,7 +16,7 @@ class AddQuantity (private val plugin : Toms3DataSender) : CommandExecutor {
         }
 
         val player = args[0]
-        val quantity = args[1].toIntOrNull() ?: return true
+        val quantity = args[1].toBigDecimalOrNull() ?: return true
         plugin.addQuantity(player, quantity)
         plugin.logger.info("Added $quantity to $player !!!")
 

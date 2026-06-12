@@ -8,6 +8,7 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
+import java.math.BigDecimal
 import me.clip.placeholderapi.PlaceholderAPI
 import org.bukkit.Statistic
 import kotlin.use
@@ -261,7 +262,7 @@ class Toms3DataSender : JavaPlugin() {
         }
     }
 
-    fun addQuantity(name: String, quantity: Int) {
+    fun addQuantity(name: String, quantity: BigDecimal) {
         val sql = """
             UPDATE PlayerData
             SET money_donated = money_donated + ?
@@ -270,7 +271,7 @@ class Toms3DataSender : JavaPlugin() {
 
         DatabaseManager.connection.use { conn ->
             conn.prepareStatement(sql).use { ps ->
-                ps.setInt(1, quantity)
+                ps.setBigDecimal(1, quantity)
                 ps.setString(2, name)
                 ps.executeUpdate()
             }
