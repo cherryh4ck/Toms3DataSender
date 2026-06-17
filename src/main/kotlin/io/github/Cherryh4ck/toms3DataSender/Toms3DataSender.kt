@@ -2,6 +2,7 @@ package io.github.Cherryh4ck.toms3DataSender
 
 import io.github.Cherryh4ck.toms3DataSender.Commands.AddQuantity
 import io.github.Cherryh4ck.toms3DataSender.Commands.ChangeGradient
+import io.github.Cherryh4ck.toms3DataSender.Listeners.BlockObfuscatedNC
 import io.github.Cherryh4ck.toms3DataSender.Listeners.ChatListener
 import io.github.Cherryh4ck.toms3DataSender.Listeners.ConnectionListener
 import org.bukkit.Bukkit
@@ -30,6 +31,7 @@ class Toms3DataSender : JavaPlugin() {
         saveDefaultConfig()
         server.pluginManager.registerEvents(ChatListener(this), this)
         server.pluginManager.registerEvents(ConnectionListener(this), this)
+        server.pluginManager.registerEvents(BlockObfuscatedNC(this), this)
         getCommand("addquantity")?.setExecutor(AddQuantity(this))
         getCommand("changegradient")?.setExecutor(ChangeGradient(this))
         logger.info("Toms3DataSender enabled.")
