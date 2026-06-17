@@ -10,6 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
 import java.math.BigDecimal
+import com.sun.management.OperatingSystemMXBean
 import me.clip.placeholderapi.PlaceholderAPI
 import org.bukkit.Statistic
 import kotlin.use
@@ -26,6 +27,7 @@ class Toms3DataSender : JavaPlugin() {
     val forceUpdate = config.getBoolean("force-update")
 
     val currentPlayerPeak = java.util.concurrent.atomic.AtomicInteger(0)
+    private val osBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
 
     override fun onEnable() {
         saveDefaultConfig()
@@ -85,6 +87,7 @@ class Toms3DataSender : JavaPlugin() {
                 uptime VARCHAR(60) NOT NULL, 
                 tps DECIMAL(10, 2) NOT NULL, 
                 mspt DECIMAL(10, 2) NOT NULL,
+                cpu_usage TEXT NOT NULL,
                 peak_player_count INT NOT NULL,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
@@ -148,6 +151,9 @@ class Toms3DataSender : JavaPlugin() {
         val minutes = TimeUnit.MILLISECONDS.toMinutes(uptimeMs) % 60
         val seconds = TimeUnit.MILLISECONDS.toSeconds(uptimeMs) % 60
 
+        val rawCpu = osBean.processCpuLoad
+        val cpuUsage = (if (rawCpu < 0) 0.0 else rawCpu * 100).toString()
+
         val worldSize = PlaceholderAPI.setPlaceholders(null, "%worldstats_size%")
 
         val onlinePlayers = Bukkit.getOnlinePlayers()
@@ -156,14 +162,15 @@ class Toms3DataSender : JavaPlugin() {
         val uptime = "${days}d ${hours}h ${minutes}m ${seconds}s"
 
         val sql = """
-            INSERT INTO ServerData (id, unique_joins, world_size, uptime, tps, mspt, peak_player_count) 
-            VALUES (?, ?, ?, ?, ?, ?, ?) 
+            INSERT INTO ServerData (id, unique_joins, world_size, uptime, tps, mspt, cpu_usage, peak_player_count) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE 
                 unique_joins = VALUES(unique_joins), 
                 world_size = VALUES(world_size),
                 uptime = VALUES(uptime),
                 tps = VALUES(tps),
                 mspt = VALUES(mspt),
+                cpu_usage = VALUES(cpu_usage),
                 peak_player_count = GREATEST(peak_player_count, VALUES(peak_player_count));
         """.trimIndent()
 
@@ -184,7 +191,8 @@ class Toms3DataSender : JavaPlugin() {
                     ps.setString(4, uptime)
                     ps.setDouble(5, tps)
                     ps.setDouble(6, mspt)
-                    ps.setInt(7, currentPlayerPeak.get())
+                    ps.setString(7, cpuUsage)
+                    ps.setInt(8, currentPlayerPeak.get())
                     ps.executeUpdate()
                 }
 
